@@ -90,8 +90,41 @@ export const RunRecordSchema = z.object({
   resultsPath: z.string().nullable()
 });
 
+export const RiskRequestSchema = z.object({
+  tickers: z.array(z.string()),
+  start: z.string(),
+  end: z.string(),
+  alpha: z.number().default(0.95)
+});
+
+export const RiskMetricsSchema = z.object({
+  hist_var: z.number(),
+  hist_cvar: z.number(),
+  param_var: z.number(),
+  param_cvar: z.number(),
+  volatility: z.number(),
+  rolling_vol: TimeSeriesSchema,
+  rolling_sharpe: TimeSeriesSchema
+});
+
+export const FactorRegressionRequestSchema = z.object({
+  tickers: z.array(z.string()),
+  start: z.string(),
+  end: z.string()
+});
+
+export const FactorRegressionResultSchema = z.object({
+  coefficients: z.record(z.number()),
+  tstats: z.record(z.number()),
+  r2: z.number()
+});
+
 export type BacktestRequest = z.infer<typeof BacktestRequestSchema>;
 export type BacktestResult = z.infer<typeof BacktestResultSchema>;
 export type OptimizationRequest = z.infer<typeof OptimizationRequestSchema>;
 export type OptimizationResult = z.infer<typeof OptimizationResultSchema>;
 export type RunRecord = z.infer<typeof RunRecordSchema>;
+export type RiskRequest = z.infer<typeof RiskRequestSchema>;
+export type RiskMetrics = z.infer<typeof RiskMetricsSchema>;
+export type FactorRegressionRequest = z.infer<typeof FactorRegressionRequestSchema>;
+export type FactorRegressionResult = z.infer<typeof FactorRegressionResultSchema>;

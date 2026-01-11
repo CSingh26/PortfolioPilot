@@ -3,8 +3,20 @@ import {
   BacktestRequestSchema,
   BacktestResult,
   BacktestResultSchema,
+  FactorRegressionRequest,
+  FactorRegressionRequestSchema,
+  FactorRegressionResult,
+  FactorRegressionResultSchema,
+  OptimizationRequest,
+  OptimizationRequestSchema,
+  OptimizationResult,
+  OptimizationResultSchema,
   RunRecord,
-  RunRecordSchema
+  RunRecordSchema,
+  RiskMetrics,
+  RiskMetricsSchema,
+  RiskRequest,
+  RiskRequestSchema
 } from '@portfoliopilot/shared';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
@@ -49,4 +61,36 @@ export async function listRuns(): Promise<RunRecord[]> {
   }
   const data = await response.json();
   return Array.isArray(data) ? data.map((item) => RunRecordSchema.parse(item)) : [];
+}
+
+export async function runOptimization(request: OptimizationRequest): Promise<OptimizationResult> {
+  const payload = OptimizationRequestSchema.parse(request);
+  const response = await fetch(`${API_URL}/v1/quant/optimize`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  });
+  return handleResponse(response, OptimizationResultSchema);
+}
+
+export async function getRiskMetrics(request: RiskRequest): Promise<RiskMetrics> {
+  const payload = RiskRequestSchema.parse(request);
+  const response = await fetch(`${API_URL}/v1/quant/risk/metrics`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  });
+  return handleResponse(response, RiskMetricsSchema);
+}
+
+export async function getFactorRegression(
+  request: FactorRegressionRequest
+): Promise<FactorRegressionResult> {
+  const payload = FactorRegressionRequestSchema.parse(request);
+  const response = await fetch(`${API_URL}/v1/quant/risk/factors`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  });
+  return handleResponse(response, FactorRegressionResultSchema);
 }
