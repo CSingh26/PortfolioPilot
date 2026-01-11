@@ -9,6 +9,7 @@
     "test": "pnpm -r --if-present test",
     "build": "pnpm -r --if-present build",
     "dev": "pnpm -r --parallel --if-present dev",
+    "seed": "node scripts/seed-runs.mjs",
     "format": "prettier --write ."
   },
   "devDependencies": {

@@ -29,6 +29,30 @@ async function handleResponse<T>(response: Response, schema: { parse: (data: unk
   return schema.parse(data);
 }
 
+export type LiveQuote = {
+  symbol: string;
+  price: number;
+  timestamp: string;
+  source: 'finnhub' | 'demo';
+};
+
+export async function getLiveQuotes(symbols: string[]): Promise<{
+  mode: string | null;
+  lastUpdated: string | null;
+  quotes: LiveQuote[];
+}> {
+  const response = await fetch(`${API_URL}/v1/live/quotes?symbols=${symbols.join(',')}`);
+  if (!response.ok) {
+    throw new Error('Failed to fetch live quotes');
+  }
+  const payload = await response.json();
+  return {
+    mode: payload.mode ?? null,
+    lastUpdated: payload.lastUpdated ?? null,
+    quotes: payload.quotes ?? []
+  };
+}
+
 export async function runBacktest(request: BacktestRequest): Promise<BacktestResult> {
   const payload = BacktestRequestSchema.parse(request);
   const response = await fetch(`${API_URL}/v1/quant/backtest`, {
