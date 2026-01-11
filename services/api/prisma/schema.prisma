@@ -1,0 +1,18 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model BacktestRun {
+  id          String   @id @default(uuid())
+  createdAt   DateTime @default(now())
+  name        String?
+  strategy    String
+  config      Json
+  summary     Json?
+  resultsPath String?
+}
