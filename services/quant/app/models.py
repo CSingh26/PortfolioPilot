@@ -80,6 +80,22 @@ class RiskRequest(BaseModel):
 
 
 class RiskMetrics(BaseModel):
-    var: float
-    cvar: float
+    hist_var: float
+    hist_cvar: float
+    param_var: float
+    param_cvar: float
     volatility: float
+    rolling_vol: TimeSeries
+    rolling_sharpe: TimeSeries
+
+
+class FactorRegressionRequest(BaseModel):
+    tickers: list[str]
+    start: date
+    end: date
+
+
+class FactorRegressionResult(BaseModel):
+    coefficients: dict[str, float]
+    tstats: dict[str, float]
+    r2: float
