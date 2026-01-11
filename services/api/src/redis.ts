@@ -1,8 +1,7 @@
 import { createClient } from 'redis';
+import { config } from './config';
 
-const redisUrl = process.env.REDIS_URL ?? 'redis://localhost:6379';
-
-export const redis = createClient({ url: redisUrl });
+export const redis = createClient({ url: config.redisUrl });
 
 redis.on('error', (error) => {
   // eslint-disable-next-line no-console
