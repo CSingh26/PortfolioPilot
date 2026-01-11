@@ -15,10 +15,13 @@
     "@portfoliopilot/shared": "workspace:*",
     "react": "18.3.1",
     "react-dom": "18.3.1",
+    "react-markdown": "^9.0.1",
     "recharts": "^2.12.7",
+    "remark-gfm": "^4.0.0",
     "tailwind-merge": "^2.5.2"
   },
   "devDependencies": {
+    "@tailwindcss/typography": "^0.5.15",
     "@types/node": "^20.14.10",
     "@types/react": "^18.3.3",
     "autoprefixer": "^10.4.20",
