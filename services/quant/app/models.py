@@ -18,6 +18,11 @@ class TimeSeries(BaseModel):
     values: list[float]
 
 
+class WeightSeries(BaseModel):
+    dates: list[str]
+    weights: dict[str, list[float]]
+
+
 class RunSummary(BaseModel):
     cagr: float
     vol: float
@@ -36,14 +41,20 @@ class BacktestRequest(BaseModel):
     slippage_bps: float = 2.0
     benchmark: str = "SPY"
     risk_free: float | None = None
+    lookback_window: int = 126
+    max_weight: float | None = None
+    vol_target: float | None = None
 
 
 class BacktestResult(BaseModel):
     run_id: str
     summary: RunSummary
     equity_curve: TimeSeries
+    returns: TimeSeries
     drawdown: TimeSeries
-    weights: dict[str, float]
+    weights: WeightSeries
+    turnover: TimeSeries
+    costs: TimeSeries
 
 
 class OptimizationRequest(BaseModel):
