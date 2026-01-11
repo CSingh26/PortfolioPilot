@@ -1,0 +1,29 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #f6f7fb;
+  --ink: #0b1320;
+  --muted: #5b6472;
+  --surface: #ffffff;
+  --border: #e4e8f0;
+  --accent: #1e3a8a;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: 'Work Sans', 'Avenir Next', 'Helvetica Neue', sans-serif;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: 'IBM Plex Serif', 'Charter', 'Georgia', serif;
+}
