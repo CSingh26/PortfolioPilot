@@ -14,3 +14,9 @@
 4. `cd services/quant && python3 -m uvicorn app.main:app --reload --port 8000`
 5. `pnpm dev`
 6. `pnpm seed` (optional sample runs)
+
+## GitHub Release Command
+If you have the GitHub CLI installed and authenticated, run:
+```
+gh release create v0.1.0 --title "PortfolioPilot v0.1.0" --notes-file docs/RELEASE_NOTES_v0.1.0.md
+```
