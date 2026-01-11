@@ -59,10 +59,20 @@ class BacktestResult(BaseModel):
 
 class OptimizationRequest(BaseModel):
     tickers: list[str]
+    start: date
+    end: date
     method: Literal["mvo", "risk_parity", "cvar"]
     target_return: float | None = None
     max_weight: float | None = None
     risk_free: float | None = None
+    alpha: float = 0.95
+    frontier_points: int = 25
+    long_only: bool = True
+
+
+class FrontierPoint(BaseModel):
+    expected_return: float
+    expected_vol: float
 
 
 class OptimizationResult(BaseModel):
@@ -70,6 +80,7 @@ class OptimizationResult(BaseModel):
     expected_return: float
     expected_vol: float
     sharpe: float
+    frontier: list[FrontierPoint] | None = None
 
 
 class RiskRequest(BaseModel):

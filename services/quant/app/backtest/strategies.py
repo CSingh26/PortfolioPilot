@@ -9,6 +9,23 @@ except Exception:  # pragma: no cover - optional dependency for constraints
     cp = None
 
 
+def _pick_solver(preferred: list[str]) -> str | None:
+    if cp is None:
+        return None
+    for name in preferred:
+        if name in cp.installed_solvers():
+            return name
+    return None
+
+
+def _solve(problem: "cp.Problem", preferred: list[str]) -> None:
+    solver = _pick_solver(preferred)
+    if solver:
+        problem.solve(solver=solver, warm_start=True)
+    else:
+        problem.solve(warm_start=True)
+
+
 def _normalize(weights: np.ndarray) -> np.ndarray:
     weights = np.clip(weights, 0, None)
     total = weights.sum()
@@ -46,8 +63,7 @@ def min_variance(returns: pd.DataFrame, max_weight: float | None = None) -> np.n
     constraints = [cp.sum(w) == 1, w >= 0]
     if max_weight is not None:
         constraints.append(w <= max_weight)
-    problem = cp.Problem(objective, constraints)
-    problem.solve(solver=cp.ECOS, warm_start=True)
+    _solve(cp.Problem(objective, constraints), ["OSQP", "SCS"])
     if w.value is None:
         return equal_weight(n_assets)
     return _normalize(w.value)
@@ -90,8 +106,7 @@ def cvar_min(returns: pd.DataFrame, alpha: float = 0.95, max_weight: float | Non
     if max_weight is not None:
         constraints.append(w <= max_weight)
 
-    problem = cp.Problem(objective, constraints)
-    problem.solve(solver=cp.ECOS, warm_start=True)
+    _solve(cp.Problem(objective, constraints), ["ECOS", "SCS"])
 
     if w.value is None:
         return equal_weight(n_assets)
