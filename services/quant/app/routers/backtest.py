@@ -14,6 +14,7 @@ router = APIRouter()
 
 
 def _series_to_payload(series) -> TimeSeries:
+    series = series.dropna()
     return TimeSeries(
         dates=[idx.date().isoformat() for idx in series.index],
         values=[float(value) for value in series.values],
@@ -42,9 +43,15 @@ def run_backtest_route(request: BacktestRequest) -> BacktestResult:
     max_dd = max_drawdown(drawdown)
     calmar = cagr / abs(max_dd) if max_dd != 0 else 0.0
 
+    weights_frame = output.weights.copy()
+    weights_frame.columns = [
+        col[0] if isinstance(col, tuple) else str(col) for col in weights_frame.columns
+    ]
     weights_payload = WeightSeries(
-        dates=[idx.date().isoformat() for idx in output.weights.index],
-        weights={col: output.weights[col].fillna(0).astype(float).tolist() for col in output.weights},
+        dates=[idx.date().isoformat() for idx in weights_frame.index],
+        weights={
+            col: weights_frame[col].fillna(0).astype(float).tolist() for col in weights_frame
+        },
     )
 
     summary = RunSummary(cagr=cagr, vol=vol, sharpe=sharpe, max_drawdown=max_dd, calmar=calmar)

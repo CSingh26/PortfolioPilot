@@ -40,11 +40,13 @@ def _fetch_history(ticker: str, start: date, end: date) -> pd.DataFrame:
 def load_ticker_ohlcv(ticker: str, start: date, end: date) -> pd.DataFrame:
     path = cache_path(f"ohlcv_{ticker}")
     cached = read_parquet(path)
+    start_ts = pd.Timestamp(start)
+    end_ts = pd.Timestamp(end)
 
     needs_fetch = cached is None or cached.empty
     if cached is not None and not cached.empty:
         cached.index = pd.to_datetime(cached.index).tz_localize(None)
-        if start < cached.index.min() or end > cached.index.max():
+        if start_ts < cached.index.min() or end_ts > cached.index.max():
             needs_fetch = True
 
     if needs_fetch:
@@ -63,7 +65,7 @@ def load_ticker_ohlcv(ticker: str, start: date, end: date) -> pd.DataFrame:
     if data is None or data.empty:
         return pd.DataFrame()
 
-    sliced = data.loc[(data.index >= pd.Timestamp(start)) & (data.index <= pd.Timestamp(end))]
+    sliced = data.loc[(data.index >= start_ts) & (data.index <= end_ts)]
     return sliced
 
 
