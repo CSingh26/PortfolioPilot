@@ -2,6 +2,8 @@ import fs from 'fs';
 import path from 'path';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import remarkMath from 'remark-math';
+import rehypeKatex from 'rehype-katex';
 import PageHeader from '../../../components/PageHeader';
 
 function loadMathDoc() {
@@ -19,7 +21,9 @@ export default function MathPage() {
     <div className="space-y-6">
       <PageHeader title="Quant Math" subtitle="Derivations" badge="MVO / Risk Parity" />
       <article className="prose prose-slate max-w-none rounded-2xl border border-border bg-white px-8 py-6 shadow-soft">
-        <ReactMarkdown remarkPlugins={[remarkGfm]}>{markdown}</ReactMarkdown>
+        <ReactMarkdown remarkPlugins={[remarkGfm, remarkMath]} rehypePlugins={[rehypeKatex]}>
+          {markdown}
+        </ReactMarkdown>
       </article>
     </div>
   );
