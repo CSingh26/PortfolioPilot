@@ -47,7 +47,9 @@ def max_sharpe_unconstrained(mu: np.ndarray, cov: np.ndarray, risk_free: float =
     return _normalize(weights)
 
 
-def target_return_unconstrained(mu: np.ndarray, cov: np.ndarray, target_return: float) -> np.ndarray:
+def target_return_unconstrained(
+    mu: np.ndarray, cov: np.ndarray, target_return: float
+) -> np.ndarray:
     n = len(mu)
     ones = np.ones(n)
     kkt = np.block(
@@ -64,7 +66,7 @@ def target_return_unconstrained(mu: np.ndarray, cov: np.ndarray, target_return: 
 
 def min_variance_long_only(cov: np.ndarray, max_weight: float | None = None) -> np.ndarray:
     if cp is None:
-        return min_variance_unconstrained(cov)
+        raise ValueError("Constrained optimizer requires cvxpy")
     n = cov.shape[0]
     w = cp.Variable(n)
     objective = cp.Minimize(cp.quad_form(w, cov))
@@ -72,49 +74,75 @@ def min_variance_long_only(cov: np.ndarray, max_weight: float | None = None) -> 
     if max_weight is not None:
         constraints.append(w <= max_weight)
     _solve(cp.Problem(objective, constraints), ["OSQP", "SCS"])
-    return _normalize(w.value if w.value is not None else np.ones(n))
+    if w.value is None:
+        raise ValueError("Optimization infeasible or solver failed")
+    return _normalize(np.maximum(w.value, 0))
 
 
 def target_return_long_only(
     mu: np.ndarray, cov: np.ndarray, target_return: float, max_weight: float | None = None
 ) -> np.ndarray:
     if cp is None:
-        return target_return_unconstrained(mu, cov, target_return)
+        raise ValueError("Constrained optimizer requires cvxpy")
     n = len(mu)
     w = cp.Variable(n)
     objective = cp.Minimize(cp.quad_form(w, cov))
-    constraints = [cp.sum(w) == 1, w >= 0, mu @ w >= target_return]
+    constraints = [cp.sum(w) == 1, w >= 0, mu @ w == target_return]
     if max_weight is not None:
         constraints.append(w <= max_weight)
     _solve(cp.Problem(objective, constraints), ["OSQP", "SCS"])
-    return _normalize(w.value if w.value is not None else np.ones(n))
-
-
-def max_sharpe_long_only(mu: np.ndarray, cov: np.ndarray, risk_free: float = 0.0) -> np.ndarray:
-    if cp is None:
-        return max_sharpe_unconstrained(mu, cov, risk_free)
-    n = len(mu)
-    w = cp.Variable(n)
-    objective = cp.Maximize((mu - risk_free) @ w)
-    constraints = [cp.quad_form(w, cov) <= 1, w >= 0]
-    _solve(cp.Problem(objective, constraints), ["SCS", "OSQP"])
     if w.value is None:
-        return _normalize(np.ones(n))
-    return _normalize(w.value)
+        raise ValueError("Optimization infeasible or solver failed")
+    return _normalize(np.maximum(w.value, 0))
+
+
+def max_sharpe_long_only(
+    mu: np.ndarray, cov: np.ndarray, risk_free: float = 0.0, max_weight: float | None = None
+) -> np.ndarray:
+    # Positive excess return is required for the convex tangency transformation.
+    if cp is None or np.max(mu - risk_free) <= 0:
+        raise ValueError("Tangency optimization requires a positive expected excess return")
+    n = len(mu)
+    y = cp.Variable(n)
+    constraints = [(mu - risk_free) @ y == 1, y >= 0]
+    if max_weight is not None:
+        constraints.append(y <= max_weight * cp.sum(y))
+    problem = cp.Problem(cp.Minimize(cp.quad_form(y, cov)), constraints)
+    _solve(problem, ["CLARABEL", "SCS"])
+    if y.value is None or problem.status not in {"optimal", "optimal_inaccurate"}:
+        raise ValueError("Optimization infeasible or solver failed")
+    return _normalize(np.maximum(y.value, 0))
 
 
 def efficient_frontier(
-    mu: pd.Series, cov: pd.DataFrame, points: int = 25, long_only: bool = True
+    mu: pd.Series,
+    cov: pd.DataFrame,
+    points: int = 25,
+    long_only: bool = True,
+    max_weight: float | None = None,
 ) -> pd.DataFrame:
     mu_values = mu.values
     cov_values = cov.values
-    target_returns = np.linspace(mu.min(), mu.max(), points)
+    # Restrict targets to the cap-feasible return range.
+    cap = max_weight or 1.0
+    if long_only and cap * len(mu) < 1 - 1e-8:
+        raise ValueError("max_weight is infeasible")
+
+    def extreme(reverse):
+        remaining, total = 1.0, 0.0
+        for value in sorted(mu_values, reverse=reverse):
+            allocation = min(cap, remaining)
+            total += allocation * value
+            remaining -= allocation
+        return total
+
+    target_returns = np.linspace(extreme(False), extreme(True), points)
     weights_list = []
     vol_list = []
 
     for target in target_returns:
         if long_only:
-            weights = target_return_long_only(mu_values, cov_values, target)
+            weights = target_return_long_only(mu_values, cov_values, target, max_weight)
         else:
             weights = target_return_unconstrained(mu_values, cov_values, target)
         vol = float(np.sqrt(weights.T @ cov_values @ weights))

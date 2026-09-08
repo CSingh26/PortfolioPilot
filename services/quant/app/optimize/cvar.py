@@ -30,9 +30,9 @@ def cvar_optimize(
     returns: pd.DataFrame, alpha: float = 0.95, max_weight: float | None = None
 ) -> np.ndarray:
     if returns.empty:
-        return np.array([])
+        raise ValueError("Returns unavailable")
     if cp is None:
-        return np.ones(returns.shape[1]) / returns.shape[1]
+        raise ValueError("CVaR optimizer requires cvxpy")
 
     matrix = returns.values
     t_len, n_assets = matrix.shape
@@ -49,6 +49,6 @@ def cvar_optimize(
 
     _solve(cp.Problem(objective, constraints), ["ECOS", "SCS"])
     if w.value is None:
-        return np.ones(n_assets) / n_assets
+        raise ValueError("Optimization infeasible or solver failed")
     weights = np.maximum(w.value, 0)
     return weights / weights.sum()

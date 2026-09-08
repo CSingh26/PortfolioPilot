@@ -4,15 +4,15 @@ from fastapi import APIRouter
 
 from ..analytics import (
     factor_regression,
-    historical_cvar,
-    historical_var,
-    parametric_cvar,
-    parametric_var,
-    rolling_sharpe,
-    rolling_vol,
 )
 from ..data import load_french_factors, load_ohlcv
-from ..models import FactorRegressionRequest, FactorRegressionResult, RiskMetrics, RiskRequest, TimeSeries
+from ..models import (
+    FactorRegressionRequest,
+    FactorRegressionResult,
+    RiskMetrics,
+    RiskRequest,
+    TimeSeries,
+)
 
 router = APIRouter()
 
@@ -34,52 +34,50 @@ def _extract_prices(frame):
 
 @router.post("/risk/metrics", response_model=RiskMetrics)
 def risk_metrics(request: RiskRequest) -> RiskMetrics:
-    prices = load_ohlcv(request.tickers, request.start, request.end)
-    if prices.empty:
-        empty = TimeSeries(dates=[], values=[])
-        return RiskMetrics(
-            hist_var=0.0,
-            hist_cvar=0.0,
-            param_var=0.0,
-            param_cvar=0.0,
-            volatility=0.0,
-            rolling_vol=empty,
-            rolling_sharpe=empty,
-        )
+    import pandas as pd
+    from fastapi import HTTPException
 
-    prices = _extract_prices(prices)
-    returns = prices.pct_change().dropna(how="all")
-    portfolio = returns.mean(axis=1)
+    from ..analytics.laboratory import analyze
+    from ..data.panel import validated_prices
 
-    hist_var = historical_var(portfolio, request.alpha)
-    hist_cvar = historical_cvar(portfolio, request.alpha)
-    param_var = parametric_var(portfolio, request.alpha)
-    param_cvar = parametric_cvar(portfolio, request.alpha)
-    vol = float(portfolio.std(ddof=1) * (252**0.5))
-
-    return RiskMetrics(
-        hist_var=hist_var,
-        hist_cvar=hist_cvar,
-        param_var=param_var,
-        param_cvar=param_cvar,
-        volatility=vol,
-        rolling_vol=_series_payload(rolling_vol(portfolio)),
-        rolling_sharpe=_series_payload(rolling_sharpe(portfolio)),
-    )
+    required = list(dict.fromkeys(request.tickers + [request.benchmark]))
+    try:
+        if request.history:
+            frame = pd.DataFrame(
+                request.history.prices, index=pd.to_datetime(request.history.dates)
+            )
+            source = request.history.source
+        else:
+            frame = load_ohlcv(required, request.start, request.end)
+            source = (
+                "Yahoo Finance via yfinance; adjusted close; local cache may contain revised data"
+            )
+        frame = validated_prices(frame, required)
+        frame = frame.loc[
+            (frame.index >= pd.Timestamp(request.start)) & (frame.index < pd.Timestamp(request.end))
+        ]
+        frame = validated_prices(frame, required)
+        return RiskMetrics(**analyze(frame, request, source))
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
 
 
 @router.post("/risk/factors", response_model=FactorRegressionResult)
 def risk_factors(request: FactorRegressionRequest) -> FactorRegressionResult:
     prices = load_ohlcv(request.tickers, request.start, request.end)
     if prices.empty:
-        return FactorRegressionResult(coefficients={}, tstats={}, r2=0.0)
+        raise ValueError("Market data unavailable for factor regression")
 
-    prices = _extract_prices(prices)
-    returns = prices.pct_change().dropna(how="all")
+    from ..data.panel import validated_prices
+
+    prices = validated_prices(prices, request.tickers)
+    returns = prices.pct_change(fill_method=None).iloc[1:]
     portfolio = returns.mean(axis=1)
 
     factors = load_french_factors(request.start, request.end)
     regression = factor_regression(portfolio, factors)
+    if not regression:
+        raise ValueError("Aligned factor data unavailable")
     return FactorRegressionResult(
         coefficients=regression.get("coefficients", {}),
         tstats=regression.get("tstats", {}),

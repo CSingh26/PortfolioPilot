@@ -1,5 +1,11 @@
 from .factors import factor_regression
-from .metrics import annualize_return, annualize_volatility, drawdown_curve, max_drawdown, sharpe_ratio
+from .metrics import (
+    annualize_return,
+    annualize_volatility,
+    drawdown_curve,
+    max_drawdown,
+    sharpe_ratio,
+)
 from .risk import (
     historical_cvar,
     historical_var,

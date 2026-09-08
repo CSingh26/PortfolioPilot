@@ -21,7 +21,7 @@ def annualize_volatility(returns: pd.Series, periods_per_year: int = 252) -> flo
 def sharpe_ratio(returns: pd.Series, risk_free: float = 0.0, periods_per_year: int = 252) -> float:
     if returns.empty:
         return 0.0
-    excess = returns - (risk_free / periods_per_year)
+    excess = returns - (((1 + risk_free) ** (1 / periods_per_year) - 1))
     denom = excess.std(ddof=1)
     if denom == 0:
         return 0.0
@@ -31,7 +31,7 @@ def sharpe_ratio(returns: pd.Series, risk_free: float = 0.0, periods_per_year: i
 def drawdown_curve(equity: pd.Series) -> pd.Series:
     if equity.empty:
         return equity
-    peak = equity.cummax()
+    peak = equity.cummax().clip(lower=1.0)
     return equity / peak - 1.0
 
 

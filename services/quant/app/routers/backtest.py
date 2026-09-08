@@ -4,7 +4,13 @@ from uuid import uuid4
 
 from fastapi import APIRouter
 
-from ..analytics import annualize_return, annualize_volatility, drawdown_curve, max_drawdown, sharpe_ratio
+from ..analytics import (
+    annualize_return,
+    annualize_volatility,
+    drawdown_curve,
+    max_drawdown,
+    sharpe_ratio,
+)
 from ..backtest import run_backtest
 from ..config import settings
 from ..data import load_ohlcv
@@ -49,9 +55,7 @@ def run_backtest_route(request: BacktestRequest) -> BacktestResult:
     ]
     weights_payload = WeightSeries(
         dates=[idx.date().isoformat() for idx in weights_frame.index],
-        weights={
-            col: weights_frame[col].fillna(0).astype(float).tolist() for col in weights_frame
-        },
+        weights={col: weights_frame[col].fillna(0).astype(float).tolist() for col in weights_frame},
     )
 
     summary = RunSummary(cagr=cagr, vol=vol, sharpe=sharpe, max_drawdown=max_dd, calmar=calmar)

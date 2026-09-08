@@ -32,6 +32,8 @@ def _fetch_history(ticker: str, start: date, end: date) -> pd.DataFrame:
     )
     if frame.empty:
         return frame
+    if isinstance(frame.columns, pd.MultiIndex):
+        frame = frame.xs(ticker, level=1, axis=1)
     frame = _normalize_columns(frame)
     frame.index = pd.to_datetime(frame.index).tz_localize(None)
     return frame
@@ -65,7 +67,7 @@ def load_ticker_ohlcv(ticker: str, start: date, end: date) -> pd.DataFrame:
     if data is None or data.empty:
         return pd.DataFrame()
 
-    sliced = data.loc[(data.index >= start_ts) & (data.index <= end_ts)]
+    sliced = data.loc[(data.index >= start_ts) & (data.index < end_ts)]
     return sliced
 
 

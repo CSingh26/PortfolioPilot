@@ -39,75 +39,31 @@ def equal_weight(n_assets: int) -> np.ndarray:
 
 
 def momentum_12_1(prices: pd.DataFrame, lookback: int = 252, skip: int = 21) -> np.ndarray:
-    if len(prices) < lookback + skip:
-        return equal_weight(prices.shape[1])
-    window = prices.iloc[-(lookback + skip) : -skip]
-    returns = window.iloc[-1] / window.iloc[0] - 1
-    top_k = max(1, int(np.ceil(len(returns) / 3)))
-    leaders = returns.sort_values(ascending=False).head(top_k).index
+    if len(prices) < lookback + 1:
+        raise ValueError("Momentum needs 253 prices for a 12-minus-1-month signal")
+    signal = prices.iloc[-(skip + 1)] / prices.iloc[-(lookback + 1)] - 1
+    top_k = max(1, int(np.ceil(len(signal) / 3)))
+    leaders = signal.sort_values(ascending=False).head(top_k).index
     weights = pd.Series(0.0, index=prices.columns)
     weights.loc[leaders] = 1 / top_k
     return weights.values
 
 
 def min_variance(returns: pd.DataFrame, max_weight: float | None = None) -> np.ndarray:
-    cov = returns.cov()
-    n_assets = cov.shape[0]
-    if cp is None:
-        inv = np.linalg.pinv(cov.values)
-        raw = inv @ np.ones(n_assets)
-        return _normalize(raw)
+    from ..optimize.mvo import min_variance_long_only
 
-    w = cp.Variable(n_assets)
-    objective = cp.Minimize(cp.quad_form(w, cov.values))
-    constraints = [cp.sum(w) == 1, w >= 0]
-    if max_weight is not None:
-        constraints.append(w <= max_weight)
-    _solve(cp.Problem(objective, constraints), ["OSQP", "SCS"])
-    if w.value is None:
-        return equal_weight(n_assets)
-    return _normalize(w.value)
+    return min_variance_long_only(returns.cov().values, max_weight)
 
 
 def risk_parity(returns: pd.DataFrame, max_iter: int = 200, step: float = 0.05) -> np.ndarray:
-    cov = returns.cov().values
-    n_assets = cov.shape[0]
-    weights = equal_weight(n_assets)
-    for _ in range(max_iter):
-        portfolio_vol = np.sqrt(weights.T @ cov @ weights)
-        if portfolio_vol == 0:
-            break
-        marginal = cov @ weights / portfolio_vol
-        risk_contrib = weights * marginal
-        target = portfolio_vol / n_assets
-        gradient = risk_contrib - target
-        weights -= step * gradient
-        weights = _normalize(weights)
-        if np.linalg.norm(gradient) < 1e-4:
-            break
-    return weights
+    from ..optimize.risk_parity import risk_parity_weights
+
+    return risk_parity_weights(returns.cov())
 
 
-def cvar_min(returns: pd.DataFrame, alpha: float = 0.95, max_weight: float | None = None) -> np.ndarray:
-    if cp is None:
-        return equal_weight(returns.shape[1])
+def cvar_min(
+    returns: pd.DataFrame, alpha: float = 0.95, max_weight: float | None = None
+) -> np.ndarray:
+    from ..optimize.cvar import cvar_optimize
 
-    matrix = returns.values
-    n_assets = matrix.shape[1]
-    t_len = matrix.shape[0]
-
-    w = cp.Variable(n_assets)
-    z = cp.Variable()
-    u = cp.Variable(t_len)
-    losses = -matrix @ w
-
-    objective = cp.Minimize(z + (1 / ((1 - alpha) * t_len)) * cp.sum(u))
-    constraints = [u >= losses - z, u >= 0, cp.sum(w) == 1, w >= 0]
-    if max_weight is not None:
-        constraints.append(w <= max_weight)
-
-    _solve(cp.Problem(objective, constraints), ["ECOS", "SCS"])
-
-    if w.value is None:
-        return equal_weight(n_assets)
-    return _normalize(w.value)
+    return cvar_optimize(returns, alpha, max_weight)
