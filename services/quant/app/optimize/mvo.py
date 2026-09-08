@@ -44,6 +44,8 @@ def max_sharpe_unconstrained(mu: np.ndarray, cov: np.ndarray, risk_free: float =
     inv = np.linalg.pinv(cov)
     excess = mu - risk_free
     weights = inv @ excess
+    if not np.isfinite(weights).all() or weights.sum() <= 1e-12:
+        raise ValueError("Positive tangency normalization unavailable for supplied estimates")
     return _normalize(weights)
 
 

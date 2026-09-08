@@ -60,7 +60,8 @@ export default function RiskDashboard() {
   return <div className="space-y-6">
     <div className="rounded-2xl bg-ink p-6 text-white"><p className="text-xs uppercase tracking-[.25em] text-teal-200">Allocation → risk → evidence</p><h2 className="mt-3 text-2xl font-semibold">Does your capital allocation match your risk allocation?</h2><p className="mt-3 max-w-3xl text-sm leading-relaxed text-slate-300">Compare total volatility, downside and benchmark sensitivity. Then ask which holdings actually carry the risk. Results describe the supplied historical sample; they do not forecast performance.</p></div>
     <Panel title="Research inputs" subtitle="Daily adjusted prices · decimal weights and shocks">
-      <form onSubmit={onSubmit} className="space-y-4">
+      <form onSubmit={onSubmit} onChange={() => setMetrics(null)} className="space-y-4">
+        <fieldset disabled={busy} className="space-y-4 disabled:opacity-60">
         <div className="grid gap-4 md:grid-cols-3">
           <label className="text-xs text-muted">Assets<input className={inputClass} value={symbols} onChange={e => setSymbols(e.target.value)} required /></label>
           <label className="text-xs text-muted">Weights (sum to 1)<input className={inputClass} value={weights} onChange={e => setWeights(e.target.value)} required /></label>
@@ -82,6 +83,7 @@ export default function RiskDashboard() {
         </details>
         <button type="submit" disabled={busy} className="rounded-xl bg-accent px-6 py-3 text-sm font-semibold text-white disabled:opacity-50">{busy ? 'Computing risk…' : 'Analyze allocation'}</button>
         {error && <p role="alert" className="rounded-xl bg-rose-50 p-3 text-sm text-rose-700">{error}</p>}
+        </fieldset>
       </form>
     </Panel>
     {metrics && <>

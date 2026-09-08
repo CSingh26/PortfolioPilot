@@ -1,36 +1,21 @@
-# PortfolioPilot Model Card
+# Model card — deterministic portfolio research
 
-## Summary
-PortfolioPilot is a portfolio analytics stack that combines classical quantitative finance methods with reproducible backtests. It does not train a predictive model; instead it implements deterministic optimizers and statistical estimators for allocation and risk.
+**Intended use:** learning, allocation diagnosis and reproducible historical research.
+**Not intended:** automated investment decisions, return prediction, trade execution or client reporting.
 
-## Intended Use
-- Portfolio construction and allocation research
-- Backtesting systematic strategies
-- Risk diagnostics and factor attribution
+There is no trained ML model or LLM in the calculation path. Sample statistical estimators,
+convex optimization and a chronological holdings simulator implement the methods. The primary
+inputs are complete adjusted-price panels, weights, benchmark, risk-free rate, dates and scenario
+shocks. Provider data and user assertions are distinct from validated numerical outputs.
 
-## Data Sources
-- **Finnhub**: real-time quotes (WebSocket)
-- **Yahoo Finance (yfinance)**: historical OHLCV
-- **FRED**: risk-free rate (optional)
-- **Ken French Library**: daily factor data
+Risk parity uses convex log budgeting with a contribution convergence check; volatility targeting
+uses historical sample volatility at each rebalance and never more than 100% gross exposure.
+See [methodology](METHODOLOGY.md) for all formulas and conventions.
 
-## Methods
-- Mean-Variance Optimization (MVO)
-- Risk Parity
-- CVaR minimization
-- EWMA volatility targeting
-- Historical + parametric VaR/CVaR
-- Factor regression on Fama-French factors
+Validation uses analytical examples, invariants, invalid input tests, an API round trip and future
+price perturbations. Independent review challenged annualization and tangency normalization;
+regressions now cover both findings. Synthetic fixtures demonstrate software behavior only, not
+model accuracy, investability, or real market performance.
 
-## Assumptions
-- Returns are computed from adjusted close prices.
-- Transaction costs and slippage are modeled in bps at rebalance.
-- Long-only constraints are enforced for constrained optimizers.
-
-## Limitations
-- No corporate action adjustments beyond what yfinance provides.
-- No explicit transaction cost model beyond linear bps.
-- Factor regression assumes linear OLS with stable betas.
-
-## Ethics and Compliance
-This tool is for educational and research use. It does not constitute investment advice.
+No predictive accuracy metric is meaningful for this tool. Future research on shrinkage, regime
+sensitivity and walk-forward allocation is not completed. See [limitations](LIMITATIONS.md).

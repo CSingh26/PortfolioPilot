@@ -32,6 +32,7 @@ export default function LineChartCard({
 }: LineChartCardProps) {
   return (
     <Panel title={title} subtitle={subtitle}>
+      {data.length === 0 && <p className="mb-2 text-xs text-muted">Insufficient observations for this window.</p>}
       <div className="h-64">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
@@ -40,7 +41,7 @@ export default function LineChartCard({
               tickLine={false}
               axisLine={false}
               tickFormatter={valueFormatter}
-              width={48}
+              width={76}
             />
             <Tooltip
               formatter={(value: number) =>

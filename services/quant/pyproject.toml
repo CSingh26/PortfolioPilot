@@ -27,6 +27,7 @@ lint.select = ["E", "F", "I"]
 
 [tool.black]
 line-length = 100
+target-version = ["py312"]
 
 [build-system]
 requires = ["setuptools==84.0.0", "wheel"]

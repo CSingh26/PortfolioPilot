@@ -5,7 +5,6 @@ from uuid import uuid4
 from fastapi import APIRouter
 
 from ..analytics import (
-    annualize_return,
     annualize_volatility,
     drawdown_curve,
     max_drawdown,
@@ -43,9 +42,11 @@ def run_backtest_route(request: BacktestRequest) -> BacktestResult:
     )
 
     drawdown = drawdown_curve(output.equity_curve)
-    cagr = annualize_return(output.returns)
-    vol = annualize_volatility(output.returns)
-    sharpe = sharpe_ratio(output.returns, risk_free=request.risk_free or 0.0)
+    # Entry cost affects wealth at t0, but is not an extra elapsed trading interval.
+    interval_returns = output.returns.iloc[1:]
+    cagr = float(output.equity_curve.iloc[-1] ** (252 / len(interval_returns)) - 1)
+    vol = annualize_volatility(interval_returns)
+    sharpe = sharpe_ratio(interval_returns, risk_free=request.risk_free or 0.0)
     max_dd = max_drawdown(drawdown)
     calmar = cagr / abs(max_dd) if max_dd != 0 else 0.0
 

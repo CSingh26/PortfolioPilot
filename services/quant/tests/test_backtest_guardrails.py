@@ -80,3 +80,39 @@ def test_cap_not_silently_ignored_by_equal_weight_strategy():
     )
     with pytest.raises(ValueError, match="caps"):
         run_backtest(prices, "equal_weight", max_weight=0.6)
+
+
+def test_unconstrained_tangency_rejects_negative_normalization():
+    from app.optimize import max_sharpe_unconstrained
+
+    with pytest.raises(ValueError, match="tangency"):
+        max_sharpe_unconstrained(np.array([-0.1, -0.2]), np.eye(2))
+
+
+def test_route_annualizes_elapsed_intervals_including_initial_cost(monkeypatch):
+    from fastapi.testclient import TestClient
+
+    from app.main import app
+
+    prices = pd.DataFrame(
+        {"A": [100, 100.2, 100.4004], "B": [100, 100.1, 100.2001]},
+        index=pd.bdate_range("2024-01-01", periods=3),
+    )
+    monkeypatch.setattr("app.routers.backtest.load_ohlcv", lambda *a: prices)
+    response = TestClient(app).post(
+        "/v1/backtest",
+        json={
+            "tickers": ["A", "B"],
+            "start": "2024-01-01",
+            "end": "2024-01-04",
+            "strategy": "buy_and_hold",
+            "transaction_cost_bps": 10,
+            "slippage_bps": 0,
+        },
+    )
+    assert response.status_code == 200, response.text
+    result = response.json()
+    terminal = 0.999 * ((1.002**2 + 1.001**2) / 2)
+    assert result["summary"]["cagr"] == pytest.approx(terminal ** (252 / 2) - 1)
+    actual = np.array(result["returns"]["values"][1:])
+    assert result["summary"]["vol"] == pytest.approx(actual.std(ddof=1) * np.sqrt(252))
