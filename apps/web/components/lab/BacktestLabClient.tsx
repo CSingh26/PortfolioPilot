@@ -89,10 +89,12 @@ export default function BacktestLabClient() {
     event.preventDefault();
     setStatus('running');
     setError(null);
+    setResult(null);
     try {
       const payload: BacktestRequest = {
         ...form,
-        tickers: form.tickers
+        tickers: form.tickers,
+        max_weight: ['min_variance', 'cvar_min'].includes(form.strategy) ? form.max_weight : undefined
       };
       const response = await runBacktest(payload);
       setResult(response);
@@ -112,6 +114,9 @@ export default function BacktestLabClient() {
 
   return (
     <div className="space-y-6">
+      <Panel title="Research assumptions" subtitle="Chronological simulation, not an investability claim">
+        <p className="text-xs leading-relaxed text-muted">Estimated strategies remain in zero-yield cash during warm-up. Close-based decisions affect the next return; holdings drift between rebalances. Linear costs apply to initial deployment and traded notional. Volatility targeting caps gross exposure at 100%; no leverage or borrowing. The selected universe may contain survivorship bias and adjusted prices may be revised. CAGR measures compounded growth; volatility measures dispersion; Sharpe measures excess return per unit of volatility; drawdown measures historical peak-to-trough loss.</p>
+      </Panel>
       <Panel title="Strategy" subtitle="Configure Backtest">
         <form className="grid gap-4 lg:grid-cols-4" onSubmit={onSubmit}>
           <div className="lg:col-span-2">
@@ -216,7 +221,7 @@ export default function BacktestLabClient() {
             value={`${(result.summary.vol * 100).toFixed(2)}%`}
             change="Annualized"
           />
-          <KpiCard label="Sharpe" value={result.summary.sharpe.toFixed(2)} change="Rolling" />
+          <KpiCard label="Sharpe" value={result.summary.sharpe.toFixed(2)} change="Full sample" />
           <KpiCard
             label="Max Drawdown"
             value={`${(result.summary.max_drawdown * 100).toFixed(2)}%`}

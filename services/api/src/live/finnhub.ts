@@ -3,39 +3,9 @@ import { config } from '../config';
 import { setLiveMode, setQuote } from './store';
 
 let socket: WebSocket | null = null;
-let demoTimer: NodeJS.Timeout | null = null;
-
-function randomPrice(base: number): number {
-  const drift = (Math.random() - 0.5) * 0.8;
-  return Math.max(1, base + drift);
-}
-
-function startDemoFeed(): void {
-  if (demoTimer) {
-    return;
-  }
-  const prices = new Map<string, number>();
-  config.liveSymbols.forEach((symbol, index) => {
-    prices.set(symbol, 80 + index * 15 + Math.random() * 10);
-  });
-
-  setLiveMode('demo').catch(() => undefined);
-
-  demoTimer = setInterval(async () => {
-    const now = new Date().toISOString();
-    await Promise.all(
-      config.liveSymbols.map(async (symbol) => {
-        const next = randomPrice(prices.get(symbol) ?? 100);
-        prices.set(symbol, next);
-        await setQuote({ symbol, price: Number(next.toFixed(2)), timestamp: now, source: 'demo' });
-      })
-    );
-  }, 3000);
-}
-
 function connectFinnhub(): void {
   if (!config.finnhubApiKey) {
-    startDemoFeed();
+    setLiveMode('unavailable').catch(() => undefined);
     return;
   }
 
@@ -71,6 +41,7 @@ function connectFinnhub(): void {
   });
 
   socket.on('close', () => {
+    setLiveMode('unavailable').catch(() => undefined);
     setTimeout(connectFinnhub, 5000);
   });
 

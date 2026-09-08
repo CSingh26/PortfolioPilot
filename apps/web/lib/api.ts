@@ -23,7 +23,10 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
 
 async function handleResponse<T>(response: Response, schema: { parse: (data: unknown) => T }) {
   if (!response.ok) {
-    throw new Error(`Request failed: ${response.status}`);
+    const body = await response.json().catch(() => ({}));
+    const detail = typeof body.detail === 'string' ? body.detail :
+      Array.isArray(body.detail) ? body.detail.map((item: { msg: string }) => item.msg).join('; ') : body.error;
+    throw new Error(detail || `Request failed: ${response.status}`);
   }
   const data = await response.json();
   return schema.parse(data);

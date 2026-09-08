@@ -6,32 +6,34 @@
     "dev": "next dev -p 3000",
     "build": "next build",
     "start": "next start -p 3000",
-    "lint": "next lint",
-    "typecheck": "tsc --noEmit"
+    "lint": "eslint app components lib tests --ext .ts,.tsx",
+    "typecheck": "tsc --noEmit",
+    "test": "tsx --test tests/*.test.ts"
   },
   "dependencies": {
     "@portfoliopilot/shared": "workspace:*",
     "clsx": "^2.1.1",
-    "katex": "^0.16.27",
-    "next": "14.2.5",
+    "katex": "^0.16.47",
+    "next": "15.5.24",
     "react": "18.3.1",
     "react-dom": "18.3.1",
-    "react-markdown": "^9.0.1",
-    "recharts": "^2.12.7",
+    "react-markdown": "^9.1.0",
+    "recharts": "^2.15.4",
     "rehype-katex": "^7.0.1",
-    "remark-gfm": "^4.0.0",
+    "remark-gfm": "^4.0.1",
     "remark-math": "^6.0.0",
-    "tailwind-merge": "^2.5.2"
+    "tailwind-merge": "^2.6.1"
   },
   "devDependencies": {
-    "@tailwindcss/typography": "^0.5.15",
-    "@types/node": "^20.14.10",
-    "@types/react": "^18.3.3",
-    "autoprefixer": "^10.4.20",
-    "eslint": "^8.57.0",
-    "eslint-config-next": "14.2.5",
-    "postcss": "^8.4.41",
-    "tailwindcss": "^3.4.10",
-    "typescript": "^5.5.4"
+    "@tailwindcss/typography": "^0.5.20",
+    "@types/node": "^20.19.43",
+    "@types/react": "^18.3.31",
+    "autoprefixer": "^10.5.5",
+    "eslint": "^8.57.1",
+    "eslint-config-next": "15.5.24",
+    "postcss": "^8.5.28",
+    "tailwindcss": "^3.4.19",
+    "tsx": "4.21.0",
+    "typescript": "^5.9.3"
   }
 }

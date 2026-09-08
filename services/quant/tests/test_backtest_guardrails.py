@@ -64,3 +64,19 @@ def test_risk_parity_diagonal_has_equal_contributions():
     cov = pd.DataFrame(np.diag([0.01, 0.04, 0.09]))
     w = risk_parity_weights(cov)
     np.testing.assert_allclose(w, np.array([6, 3, 2]) / 11, atol=1e-5)
+
+
+def test_warmup_requires_at_least_one_invested_return():
+    prices = pd.DataFrame(
+        {"A": np.arange(22) + 100}, index=pd.bdate_range("2024-01-01", periods=22)
+    )
+    with pytest.raises(ValueError, match="warm-up"):
+        run_backtest(prices, "vol_target", lookback=21)
+
+
+def test_cap_not_silently_ignored_by_equal_weight_strategy():
+    prices = pd.DataFrame(
+        {"A": [100, 101, 102], "B": [100, 102, 104]}, index=pd.bdate_range("2024-01-01", periods=3)
+    )
+    with pytest.raises(ValueError, match="caps"):
+        run_backtest(prices, "equal_weight", max_weight=0.6)

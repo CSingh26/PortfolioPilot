@@ -1,4 +1,4 @@
-import dotenv from 'dotenv';
+import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import morgan from 'morgan';
@@ -9,7 +9,6 @@ import { prisma } from './prisma';
 import { connectRedis } from './redis';
 import { loadRunArtifacts, saveRunArtifacts } from './runs';
 
-dotenv.config();
 
 const app = express();
 const port = Number(process.env.PORT ?? 4000);
@@ -99,7 +98,8 @@ async function proxyQuant(path: string, req: express.Request, res: express.Respo
     const response = await fetch(`${quantBaseUrl}${path}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(req.body ?? {})
+      body: JSON.stringify(req.body ?? {}),
+      signal: AbortSignal.timeout(120000)
     });
     const payload = await response.json();
     res.status(response.status).json(payload);

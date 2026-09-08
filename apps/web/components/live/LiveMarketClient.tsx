@@ -8,6 +8,7 @@ const defaultSymbols = ['SPY', 'QQQ', 'IWM', 'EFA', 'EEM', 'AGG', 'GLD', 'VNQ', 
 
 export default function LiveMarketClient() {
   const [quotes, setQuotes] = useState<LiveQuote[]>([]);
+  const [error, setError] = useState<string | null>(null);
   const [mode, setMode] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<string | null>(null);
   const [basePrices, setBasePrices] = useState<Record<string, number>>({});
@@ -18,6 +19,7 @@ export default function LiveMarketClient() {
       try {
         const response = await getLiveQuotes(defaultSymbols);
         if (!active) return;
+        setError(null);
         setQuotes(response.quotes);
         setMode(response.mode);
         setLastUpdated(response.lastUpdated);
@@ -30,7 +32,7 @@ export default function LiveMarketClient() {
           return snapshot;
         });
       } catch {
-        // ignore polling errors
+        if (active) { setError('Live quote service unavailable.'); setQuotes([]); setMode(null); }
       }
     }
     load();
@@ -52,11 +54,12 @@ export default function LiveMarketClient() {
 
   return (
     <div className="space-y-6">
+      {error && <p role="alert" className="text-sm text-rose-600">{error}</p>}
       <section className="grid gap-6 lg:grid-cols-3">
         <Panel title="Quotes" subtitle="Live Tickers">
           <div className="space-y-3 text-sm">
             {quotes.length === 0 ? (
-              <p className="text-muted">Waiting for quotes…</p>
+              <p className="text-muted">No observed quotes available. Configure Finnhub and Redis to enable the feed.</p>
             ) : (
               quotes.map((quote) => (
                 <div key={quote.symbol} className="flex items-center justify-between">
@@ -67,11 +70,11 @@ export default function LiveMarketClient() {
             )}
           </div>
         </Panel>
-        <Panel title="Paper PnL" subtitle="Equal-Weight Basket">
+        <Panel title="Session quote change" subtitle="Equal-weight displayed basket · excludes trading costs">
           <div className="space-y-3 text-sm text-muted">
             <div className="flex items-center justify-between">
-              <span>Aggregate PnL</span>
-              <span className="font-semibold text-ink">{(pnl * 100).toFixed(2)}%</span>
+              <span>Since first observed quote</span>
+              <span className="font-semibold text-ink">{quotes.length ? `${(pnl * 100).toFixed(2)}%` : 'Unavailable'}</span>
             </div>
             <div className="flex items-center justify-between">
               <span>Tracking</span>
@@ -83,11 +86,11 @@ export default function LiveMarketClient() {
             </div>
           </div>
         </Panel>
-        <Panel title="Latency" subtitle="Feed Health">
+        <Panel title="Freshness" subtitle="Provider state, not measured network latency">
           <div className="space-y-3 text-sm text-muted">
             <div className="flex items-center justify-between">
               <span>Status</span>
-              <span className="font-semibold text-ink">{mode ? 'Connected' : 'Idle'}</span>
+              <span className="font-semibold text-ink">{mode === 'finnhub' ? 'Provider connected; check tick time' : 'Unavailable'}</span>
             </div>
             <div className="flex items-center justify-between">
               <span>Last tick</span>

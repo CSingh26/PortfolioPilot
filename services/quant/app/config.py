@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 DEFAULT_UNIVERSE = [
     "SPY",
@@ -23,8 +23,7 @@ class Settings(BaseSettings):
     fred_api_key: str | None = None
     default_universe: list[str] = DEFAULT_UNIVERSE
 
-    class Config:
-        env_prefix = "QUANT_"
+    model_config = SettingsConfigDict(env_prefix="QUANT_")
 
 
 settings = Settings()

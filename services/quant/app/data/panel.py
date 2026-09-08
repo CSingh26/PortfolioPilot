@@ -19,6 +19,10 @@ def validated_prices(frame: pd.DataFrame, tickers: list[str] | None = None) -> p
         frame = frame.loc[:, tickers]
     if frame.index.has_duplicates or not frame.index.is_monotonic_increasing:
         raise ValueError("Price dates must be unique and chronological")
+    if isinstance(frame.index, pd.DatetimeIndex) and len(frame) > 1:
+        gaps = frame.index.to_series().diff().dt.total_seconds().dropna() / 86400
+        if gaps.median() > 3 or gaps.max() > 7:
+            raise ValueError("Expected daily observations; long or irregular gaps are unsupported")
     if len(frame) < 3 or frame.shape[1] == 0:
         raise ValueError("At least three price observations are required")
     if not np.isfinite(frame.to_numpy(dtype=float)).all() or (frame <= 0).any().any():

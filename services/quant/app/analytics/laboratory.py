@@ -54,7 +54,8 @@ def analyze(prices: pd.DataFrame, request: RiskRequest, source: str) -> dict:
         )
     if len(returns) * (1 - request.alpha) < 20:
         warnings.append(
-            "Fewer than 20 expected tail observations: VaR/CVaR have substantial sampling uncertainty."
+            "Fewer than 20 expected tail observations: "
+            "VaR/CVaR have substantial sampling uncertainty."
         )
     if vol < 1e-12 or beta is None or downside < 1e-12:
         warnings.append("Undefined ratios are null when total/downside/benchmark variance is zero.")
@@ -118,7 +119,9 @@ def analyze(prices: pd.DataFrame, request: RiskRequest, source: str) -> dict:
             "input_sha256": hashlib.sha256(
                 prices.to_csv(float_format="%.17g").encode()
             ).hexdigest(),
-            "assumptions": "Adjusted prices; complete common calendar; long-only daily constant weights",
+            "assumptions": (
+                "Adjusted prices; complete common calendar; " "long-only daily constant weights"
+            ),
             "warnings": warnings,
         },
     )

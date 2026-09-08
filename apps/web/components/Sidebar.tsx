@@ -18,14 +18,14 @@ export default function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="flex h-full flex-col border-r border-border bg-white px-6 py-8">
+    <aside className="flex h-full flex-col border-b lg:border-b-0 lg:border-r border-border bg-white px-4 py-4 lg:px-6 lg:py-8">
       <div className="flex items-center justify-between">
         <div>
           <p className="text-xs uppercase tracking-[0.25em] text-muted">PortfolioPilot</p>
           <h1 className="mt-2 text-2xl font-semibold text-ink">Quant Lab</h1>
         </div>
       </div>
-      <nav className="mt-10 flex flex-1 flex-col gap-2">
+      <nav className="mt-4 flex flex-1 flex-row flex-wrap gap-2 lg:mt-10 lg:flex-col">
         {navItems.map((item) => (
           <Link
             key={item.href}
@@ -42,7 +42,7 @@ export default function Sidebar() {
         ))}
       </nav>
       <div className="rounded-xl border border-border bg-canvas px-4 py-3 text-xs text-muted">
-        Market data and backtests cached locally for speed.
+        Research estimates, not investment recommendations.
       </div>
     </aside>
   );

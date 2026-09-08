@@ -79,6 +79,8 @@ def run_backtest(
         or max(transaction_cost_bps, slippage_bps) > 1000
     ):
         raise ValueError("Costs must be finite basis points between 0 and 1000")
+    if max_weight is not None and strategy not in {"min_variance", "cvar_min"}:
+        raise ValueError("Weight caps are supported only for min_variance and cvar_min")
     if max_weight is not None and (max_weight <= 0 or max_weight > 1):
         raise ValueError("max_weight must be in (0, 1]")
     if vol_target is not None and (not np.isfinite(vol_target) or not 0 < vol_target <= 1):
@@ -102,7 +104,7 @@ def run_backtest(
         strategy in {"momentum_12_1", "min_variance", "risk_parity", "cvar_min", "vol_target"}
         or vol_target is not None
     )
-    if estimated and len(returns) < warmup:
+    if estimated and len(returns) <= warmup:
         raise ValueError("Insufficient history for strategy warm-up")
 
     for i, date in enumerate(prices.index):

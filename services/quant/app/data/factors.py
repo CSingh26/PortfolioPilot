@@ -23,8 +23,9 @@ def _parse_french_csv(content: str) -> pd.DataFrame:
     for line in lines:
         if not line.strip():
             continue
-        if header is None and line.lower().startswith("date"):
+        if header is None and (line.lower().startswith("date") or line.startswith(",Mkt-RF")):
             header = [col.strip() for col in line.split(",")]
+            header[0] = "Date"
             continue
         if header is None:
             continue

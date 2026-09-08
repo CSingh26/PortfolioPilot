@@ -11,7 +11,7 @@ const QUOTE_HASH = 'live:quotes';
 const UPDATED_AT_KEY = 'live:updated_at';
 const MODE_KEY = 'live:mode';
 
-export async function setLiveMode(mode: LiveQuote['source']): Promise<void> {
+export async function setLiveMode(mode: LiveQuote['source'] | 'unavailable'): Promise<void> {
   await redis.set(MODE_KEY, mode);
 }
 
@@ -26,19 +26,16 @@ export async function getQuotes(symbols: string[]): Promise<LiveQuote[]> {
   }
   const payloads = await redis.hmGet(QUOTE_HASH, symbols);
   return payloads
-    .map((payload, index) => {
+    .map((payload) => {
       if (!payload) {
         return null;
       }
       try {
-        return JSON.parse(payload) as LiveQuote;
+        const quote = JSON.parse(payload) as LiveQuote;
+        return quote.source === 'finnhub' && Number.isFinite(quote.price) && quote.price > 0
+          ? quote : null;
       } catch {
-        return {
-          symbol: symbols[index],
-          price: 0,
-          timestamp: new Date().toISOString(),
-          source: 'demo'
-        } satisfies LiveQuote;
+        return null;
       }
     })
     .filter((quote): quote is LiveQuote => quote !== null);
