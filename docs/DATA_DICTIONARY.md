@@ -27,3 +27,9 @@
 CSV is simple comma-separated text without quoted fields. The upload parser handles only daily
 price panels, not transaction exports or holdings ledgers. Synthetic teaching paths use deliberately
 non-market labels EQUITY/BONDS/GOLD and never load automatically after a provider error.
+
+
+The inherited `data/runs/` artifacts and optional `pnpm seed` records are separately labeled
+SYNTHETIC LEGACY UI FIXTURES. Their hardcoded values are retained to preserve prior work and
+must not be used as financial calculations or strategy performance. New risk-workbench teaching
+paths are input data whose outputs are actually computed by the domain engine.

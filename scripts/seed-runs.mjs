@@ -2,6 +2,8 @@ const API_URL = process.env.API_URL ?? 'http://localhost:4000';
 
 const sampleResults = {
   run_id: 'seed',
+  warnings: ["SYNTHETIC LEGACY UI FIXTURE: hardcoded layout values, not internally consistent calculations or observed strategy performance."],
+  provenance: { source: 'SYNTHETIC UI FIXTURE', usable_as_performance: false },
   summary: { cagr: 0.12, vol: 0.18, sharpe: 1.1, max_drawdown: -0.08, calmar: 1.5 },
   equity_curve: {
     dates: ['2023-01-31', '2023-06-30', '2023-12-29'],
@@ -35,7 +37,7 @@ const sampleResults = {
 
 const seedRuns = [
   {
-    name: 'Risk Parity 2019-2024',
+    name: 'SYNTHETIC UI FIXTURE — risk-parity layout, not strategy performance',
     strategy: 'risk_parity',
     config: {
       tickers: ['SPY', 'QQQ', 'IWM', 'EFA', 'EEM'],
@@ -47,7 +49,7 @@ const seedRuns = [
     results: sampleResults
   },
   {
-    name: 'Momentum 12-1 2018-2024',
+    name: 'SYNTHETIC UI FIXTURE — momentum layout, not strategy performance',
     strategy: 'momentum_12_1',
     config: {
       tickers: ['SPY', 'QQQ', 'IWM', 'EFA', 'EEM'],

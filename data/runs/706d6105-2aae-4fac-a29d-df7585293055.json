@@ -1,4 +1,11 @@
 {
+  "provenance": {
+    "source": "SYNTHETIC LEGACY UI FIXTURE",
+    "usable_as_performance": false
+  },
+  "warnings": [
+    "SYNTHETIC LEGACY UI FIXTURE: hardcoded layout values, not internally consistent calculations or observed strategy performance."
+  ],
   "run_id": "seed",
   "summary": {
     "cagr": 0.12,

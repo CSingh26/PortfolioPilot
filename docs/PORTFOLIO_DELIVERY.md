@@ -106,3 +106,9 @@ An isolated browser contract check also delivered the actual backend's constant-
 to the production UI through a mocked HTTP boundary: null Sharpe and Calmar rendered Unavailable,
 the unused-benchmark warning was visible, and no page errors occurred. This is explicitly a UI
 contract test, separate from the full-stack teaching-data walkthrough and its screenshots.
+
+
+The final labeling audit preserved two inherited hardcoded UI-layout artifacts and the optional
+seed script, adding explicit synthetic/non-performance metadata and visible seeded-run names.
+Those old layout numbers are not internally consistent performance calculations and are never
+used by the risk engine. See the data dictionary for the distinction from computed teaching outputs.
