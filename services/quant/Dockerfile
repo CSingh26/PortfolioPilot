@@ -4,8 +4,9 @@ WORKDIR /app
 
 COPY services/quant/pyproject.toml services/quant/pyproject.toml
 COPY services/quant/app services/quant/app
+COPY services/quant/requirements.lock services/quant/requirements.lock
 
-RUN pip install --no-cache-dir -e services/quant
+RUN pip install --no-cache-dir -r services/quant/requirements.lock -e services/quant
 RUN mkdir -p /app/data/cache /app/data/runs
 
 ENV PORT=8000

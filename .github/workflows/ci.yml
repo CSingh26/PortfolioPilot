@@ -56,6 +56,9 @@ jobs:
       - name: Python lint
         run: python -m ruff check services/quant/app services/quant/tests
 
+      - name: Tracked secret-pattern scan
+        run: python scripts/check-secrets.py
+
       - name: Dependency audit
         run: pnpm audit --audit-level=low
 

@@ -73,7 +73,7 @@ With risk-free rate \(r_f\), the tangency portfolio is:
 \[
 \boxed{w^{\star} \propto \Sigma^{-1} (\mu - r_f \mathbf{1})}
 \]
-Normalize so \(\mathbf{1}^T w = 1\).
+Normalize so \(\mathbf{1}^T w = 1\), only when the normalization denominator is positive; otherwise this implementation rejects the unsupported tangency direction.
 
 ### Long-only (constrained)
 For long-only and weight caps, PortfolioPilot solves convex QPs:
@@ -91,7 +91,7 @@ Risk contributions use:
 \text{RC}_i = w_i (\Sigma w)_i / \sigma_p
 \]
 
-Equal risk contribution solves for \(\text{RC}_i = \sigma_p / n\) using iterative updates.
+Equal risk contribution solves for \(\text{RC}_i = \sigma_p / n\) using a convex log-budgeting objective with a verified contribution residual.
 
 ## 3. Value at Risk (VaR) and CVaR
 
@@ -121,13 +121,25 @@ Subject to:
  u_t \ge -r_t^T w - z, \quad u_t \ge 0, \quad \mathbf{1}^T w = 1, \quad w \ge 0
 \]
 
-## 4. Volatility Targeting (EWMA)
-EWMA volatility:
-\[
-\sigma_t^2 = \lambda \sigma_{t-1}^2 + (1-\lambda) r_t^2
-\]
+## 4. Volatility targeting with lagged holdings
 
-Scale returns by:
-\[
-\text{scale}_t = \frac{\sigma_{\text{target}}}{\sigma_t}
-\]
+At a rebalance close, estimate annualized sample volatility of the base allocation using only
+returns observed through that date. Scale the next interval's asset weights by
+`min(1, target_volatility / estimated_volatility)`. Zero estimated volatility implies zero
+risky exposure. The remaining wealth is zero-yield cash. There is no leverage and no same-period
+rescaling of realized returns. Trading costs are computed after the target weights change.
+
+## 5. Risk workbench conventions
+
+Portfolio volatility is `sqrt(wᵀΣw)` using sample covariance × 252. Downside deviation is
+`sqrt(252 × mean(min(portfolio_return − daily_rf, 0)²))`, using all observations. Sharpe and
+Sortino divide annualized arithmetic excess return by total and downside volatility respectively.
+Undefined risk-workbench ratios are null. Daily risk-free rate is `(1 + annual_effective_rf)^(1/252)−1`.
+
+Drawdown includes initial capital before the first return. Risk snapshots assume daily constant
+weights without costs. Their VaR/CVaR outputs are signed one-day returns, not annualized positive
+losses. Benchmark CAPM and Euler risk attribution describe the historical sample rather than
+predicting returns or proving investment skill.
+
+The complete [methodology](https://github.com/CSingh26/PortfolioPilot/blob/main/docs/METHODOLOGY.md)
+documents all estimators, units, data restrictions, cost conventions and limitations.
