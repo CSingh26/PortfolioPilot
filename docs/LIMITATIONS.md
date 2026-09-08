@@ -15,8 +15,9 @@
 - Backtest close-based signals assume close execution; exact fills, tax, impact, financing,
   borrow availability and cost/target fixed-point calculations are not modeled. Warm-up cash has
   zero yield; leverage is excluded from the backtest. This differs from unconstrained optimizer outputs.
-- Legacy backtest summary retains zero for undefined Sharpe/Calmar and ignores its compatibility
-  benchmark field; the risk workbench provides null semantics and actual benchmark comparisons.
+- The backtest compatibility benchmark is not used in calculations; each response/UI explicitly
+  warns about this scope. Actual benchmark comparisons are in the risk workbench. Undefined
+  Sharpe/Calmar values are null and displayed as unavailable, not numerical zero.
 - Static shocks are linear, with no probability or derivatives repricing. Correlations during stress
   need not match historical correlations.
 - Saved-run persistence needs PostgreSQL and local files; quote monitor/gateway needs Redis.

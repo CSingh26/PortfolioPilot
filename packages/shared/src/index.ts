@@ -23,9 +23,9 @@ export const WeightSeriesSchema = z.object({
 export const RunSummarySchema = z.object({
   cagr: z.number(),
   vol: z.number(),
-  sharpe: z.number(),
+  sharpe: z.number().nullable(),
   max_drawdown: z.number(),
-  calmar: z.number()
+  calmar: z.number().nullable()
 });
 
 export const BacktestRequestSchema = z.object({
@@ -44,6 +44,7 @@ export const BacktestRequestSchema = z.object({
 });
 
 export const BacktestResultSchema = z.object({
+  warnings: z.array(z.string()),
   run_id: z.string(),
   summary: RunSummarySchema,
   equity_curve: TimeSeriesSchema,

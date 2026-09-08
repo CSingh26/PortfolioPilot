@@ -14,3 +14,9 @@ The reviewer reran the 12 backtest guardrail tests and confirmed all three findi
 The bounded review also checked risk nonfinite-input handling and adjusted-price/cache paths;
 no additional material core security issue was identified. This is not an exhaustive penetration
 test, investment-model certification, or a claim that every possible financial risk is covered.
+
+
+The root orchestrator subsequently challenged the legacy backtest zero-valued undefined ratios
+and silently unused benchmark field. The final revision returns nullable Sharpe/Calmar with UI
+Unavailable formatting, and exposes the compatibility-field warning in both response and UI.
+New regression tests cover both API behavior and shared-schema preservation of null.

@@ -2,8 +2,8 @@
 
 Verification date: 2026-09-08. Repository: <https://github.com/CSingh26/PortfolioPilot>.
 Default branch: `main`. Baseline: `188b886` (20 existing commits, preserved).
-Final implementation/release revision: `b1b3da441c973fb63b3ecbfbf3ae17d4f61352c9`
-(25 meaningful total commits). This evidence report is a subsequent documentation-only commit;
+Initial implementation/release verification revision: `b1b3da441c973fb63b3ecbfbf3ae17d4f61352c9`
+(25 meaningful total commits). Subsequent review fixes and this evidence report are committed after that named revision;
 obtain that self-referential delivery SHA with `git rev-parse HEAD`, and compare it with
 `git ls-remote origin refs/heads/main`. The orchestrator's final report records that exact SHA.
 
@@ -28,8 +28,8 @@ is no longer silently replaced with equal weights. The old fictional overview/li
 | `pnpm --filter @portfoliopilot/api prisma:generate` | Prisma client generated |
 | `pnpm lint` | Pass across web, shared and API |
 | `pnpm typecheck` | Pass across all TypeScript packages |
-| `pnpm test` | 4 TypeScript tests pass |
-| `.venv/bin/python -m pytest services/quant/tests -q` | 36 Python tests pass |
+| `pnpm test` | 5 TypeScript tests pass |
+| `.venv/bin/python -m pytest services/quant/tests -q` | 38 Python tests pass |
 | `.venv/bin/python -m ruff check services/quant/app services/quant/tests` | Pass |
 | `pnpm build` | API compilation and Next.js production build pass; 10 static pages generated |
 | `pnpm audit --audit-level=low` | No known vulnerabilities after direct upgrades and patched transitive overrides |
@@ -67,7 +67,7 @@ Verified review revision CI: [bc0a1bc](https://github.com/CSingh26/PortfolioPilo
 completed successfully. Release revision CI:
 [b1b3da4](https://github.com/CSingh26/PortfolioPilot/actions/runs/34283394029)
 completed successfully.
-The final documentation commit's exact-SHA CI and clean remote state are verified separately by
+The final delivery commit's exact-SHA CI and clean remote state are verified separately by
 the release agent before completion; this report does not claim a run succeeded before it finished.
 
 Repository description and relevant finance/risk/engineering topics are configured. All existing
@@ -80,12 +80,29 @@ upload provenance is user asserted. Tail estimates, covariance and beta are unst
 samples/regime changes. Risk snapshots assume cost-free daily constant weights. The chronological
 backtest uses simplified signal-close execution, linear turnover costs and zero-yield cash; exact
 self-financing cost fixed points, impact, tax, financing and a validated exchange calendar are absent.
-Unconstrained optimizer outputs can short; the simulator itself stays unlevered. Legacy backtest
-undefined Sharpe/Calmar remain zero, and its compatibility benchmark field is not used; actual
-benchmark comparison and null denominator semantics are in the risk workbench.
+Unconstrained optimizer outputs can short; the simulator itself stays unlevered. Backtest
+undefined Sharpe/Calmar are now null, with explicit unavailable interpretations. Its compatibility
+benchmark field is not used; every response/UI warns that actual benchmark comparisons are in
+the risk workbench.
 
 Redis is required by gateway startup/quote monitor; PostgreSQL is required for saving runs. The
 supplied-price FastAPI endpoint itself requires neither. Saved-run persistence and external live
 market connectivity were not exercised in the final browser walkthrough. Docker configuration was
 validated, but image builds were not. Walk-forward allocation, point-in-time universes, uncertainty
 bands and shrinkage/regime estimation remain explicitly future research.
+
+
+## Final orchestrator review correction
+
+After the named initial release checks, the orchestrator requested removing two remaining legacy
+ambiguities. Backtest Sharpe/Calmar now return null when undefined; the shared schemas preserve
+null and the UI displays Unavailable with the denominator explanation. Every backtest response
+and rendered result explicitly warns that the compatibility benchmark field is unused and directs
+users to actual benchmark/CAPM comparisons in Risk. New failing-first Python/API and TypeScript
+regressions increased the verified totals to 38 and 5. These corrections are included in the final
+HEAD verified by CI and reported by the orchestrator; the old named revisions above are prior evidence.
+
+An isolated browser contract check also delivered the actual backend's constant-price test result
+to the production UI through a mocked HTTP boundary: null Sharpe and Calmar rendered Unavailable,
+the unused-benchmark warning was visible, and no page errors occurred. This is explicitly a UI
+contract test, separate from the full-stack teaching-data walkthrough and its screenshots.

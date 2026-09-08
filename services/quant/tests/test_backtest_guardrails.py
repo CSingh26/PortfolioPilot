@@ -116,3 +116,37 @@ def test_route_annualizes_elapsed_intervals_including_initial_cost(monkeypatch):
     assert result["summary"]["cagr"] == pytest.approx(terminal ** (252 / 2) - 1)
     actual = np.array(result["returns"]["values"][1:])
     assert result["summary"]["vol"] == pytest.approx(actual.std(ddof=1) * np.sqrt(252))
+
+
+def test_backtest_undefined_ratios_and_compatibility_benchmark_are_explicit(monkeypatch):
+    from fastapi.testclient import TestClient
+
+    from app.main import app
+
+    prices = pd.DataFrame({"A": [100, 100, 100]}, index=pd.bdate_range("2024-01-01", periods=3))
+    monkeypatch.setattr("app.routers.backtest.load_ohlcv", lambda *a: prices)
+    response = TestClient(app).post(
+        "/v1/backtest",
+        json={
+            "tickers": ["A"],
+            "start": "2024-01-01",
+            "end": "2024-01-04",
+            "strategy": "buy_and_hold",
+            "transaction_cost_bps": 0,
+            "slippage_bps": 0,
+            "benchmark": "SPY",
+        },
+    )
+    assert response.status_code == 200, response.text
+    result = response.json()
+    assert result["summary"]["sharpe"] is None
+    assert result["summary"]["calmar"] is None
+    assert any("SPY" in warning and "not used" in warning for warning in result["warnings"])
+    assert any("undefined" in warning.lower() for warning in result["warnings"])
+
+
+def test_backtest_sharpe_is_unavailable_without_observations():
+    from app.analytics.metrics import sharpe_ratio
+
+    assert sharpe_ratio(pd.Series(dtype=float)) is None
+    assert sharpe_ratio(pd.Series([0.01])) is None

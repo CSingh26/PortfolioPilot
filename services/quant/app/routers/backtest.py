@@ -48,7 +48,15 @@ def run_backtest_route(request: BacktestRequest) -> BacktestResult:
     vol = annualize_volatility(interval_returns)
     sharpe = sharpe_ratio(interval_returns, risk_free=request.risk_free or 0.0)
     max_dd = max_drawdown(drawdown)
-    calmar = cagr / abs(max_dd) if max_dd != 0 else 0.0
+    calmar = cagr / abs(max_dd) if abs(max_dd) > 1e-12 else None
+    warnings = [
+        f"Compatibility benchmark {request.benchmark} is not used by this backtest. "
+        "Use the risk workbench for actual benchmark/CAPM comparisons."
+    ]
+    if sharpe is None:
+        warnings.append("Sharpe is undefined because return volatility is zero or unavailable.")
+    if calmar is None:
+        warnings.append("Calmar is undefined because no drawdown was observed.")
 
     weights_frame = output.weights.copy()
     weights_frame.columns = [
@@ -62,6 +70,7 @@ def run_backtest_route(request: BacktestRequest) -> BacktestResult:
     summary = RunSummary(cagr=cagr, vol=vol, sharpe=sharpe, max_drawdown=max_dd, calmar=calmar)
 
     return BacktestResult(
+        warnings=warnings,
         run_id=str(uuid4()),
         summary=summary,
         equity_curve=_series_to_payload(output.equity_curve),

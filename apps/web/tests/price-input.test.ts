@@ -25,3 +25,10 @@ test('shared request boundary rejects invalid tail confidence and nonfinite allo
   assert.equal(RiskRequestSchema.safeParse({ ...base, alpha: 1 }).success, false);
   assert.equal(RiskRequestSchema.safeParse({ ...base, weights: { A: Infinity } }).success, false);
 });
+
+test('backtest summaries preserve unavailable ratios instead of converting them to zero', async () => {
+  const { RunSummarySchema } = await import('../../../packages/shared/src');
+  const result = RunSummarySchema.parse({ cagr: 0, vol: 0, sharpe: null, max_drawdown: 0, calmar: null });
+  assert.equal(result.sharpe, null);
+  assert.equal(result.calmar, null);
+});

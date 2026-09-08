@@ -213,6 +213,11 @@ export default function BacktestLabClient() {
         ) : null}
       </Panel>
 
+      {result && <Panel title="Backtest interpretation" subtitle="Scope and undefined estimates">
+        <ul className="list-disc space-y-2 pl-5 text-xs text-muted">{result.warnings.map(warning => <li key={warning}>{warning}</li>)}</ul>
+        <p className="mt-3 text-xs text-muted">Calmar: {result.summary.calmar === null ? 'Unavailable' : result.summary.calmar.toFixed(2)} — annual compounded growth per unit of maximum observed drawdown. Undefined when no drawdown was observed; historical drawdown does not bound future losses.</p>
+      </Panel>}
+
       {result ? (
         <section className="grid gap-4 lg:grid-cols-4">
           <KpiCard label="CAGR" value={`${(result.summary.cagr * 100).toFixed(2)}%`} change="Annualized" />
@@ -221,7 +226,7 @@ export default function BacktestLabClient() {
             value={`${(result.summary.vol * 100).toFixed(2)}%`}
             change="Annualized"
           />
-          <KpiCard label="Sharpe" value={result.summary.sharpe.toFixed(2)} change="Full sample" />
+          <KpiCard label="Sharpe" value={result.summary.sharpe === null ? 'Unavailable' : result.summary.sharpe.toFixed(2)} change="Full sample" />
           <KpiCard
             label="Max Drawdown"
             value={`${(result.summary.max_drawdown * 100).toFixed(2)}%`}

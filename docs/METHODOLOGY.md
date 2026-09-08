@@ -101,8 +101,9 @@ volatility/Sharpe score the actual N−1 return intervals. Backtest cash earns z
 subtracts a nonzero external risk-free hurdle.
 
 The backtest request's legacy benchmark field is retained for API compatibility but does not feed
-its performance summary; benchmark comparisons are implemented in the risk workbench. Legacy
-backtest undefined Sharpe/Calmar values use zero, unlike the richer risk workbench's null semantics.
+its performance summary; every backtest response and its UI show an explicit warning and direct
+users to the risk workbench for actual benchmark comparisons. Undefined Sharpe and Calmar are
+JSON null, displayed as Unavailable with an explanation of the zero denominator.
 
 ## Primary references
 - [CFA Institute, Portfolio Risk and Return](https://www.cfainstitute.org/insights/professional-learning/refresher-readings/2026/portfolio-risk-return-part-1)

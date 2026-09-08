@@ -53,9 +53,9 @@ class WeightSeries(BaseModel):
 class RunSummary(BaseModel):
     cagr: float
     vol: float
-    sharpe: float
+    sharpe: float | None
     max_drawdown: float
-    calmar: float
+    calmar: float | None
 
 
 class BacktestRequest(MarketRequest):
@@ -71,6 +71,7 @@ class BacktestRequest(MarketRequest):
 
 
 class BacktestResult(BaseModel):
+    warnings: list[str]
     run_id: str
     summary: RunSummary
     equity_curve: TimeSeries
